@@ -40,6 +40,10 @@ class single_store {
     using const_iterator = typename base_type::const_iterator;
     using context_type = context_t;
 
+/* CA Store >>>
+     using offsets_container = container_t<size_type>;
+*/
+
     /// How to find data in the store
     /// @{
     using link_type = dindex;
@@ -98,6 +102,9 @@ class single_store {
     constexpr auto size(const context_type & /*ctx*/ = {}) const noexcept
         -> dindex {
         return static_cast<dindex>(m_container.size());
+/* CA Store >>>
+        return static_cast<dindex>(m_offsets[ctx.get()]+1);
+*/
     }
 
     /// @returns true if the underlying container is empty
@@ -105,18 +112,27 @@ class single_store {
     constexpr auto empty(const context_type & /*ctx*/ = {}) const noexcept
         -> bool {
         return m_container.empty();
+/* CA Store >>>
+        return m_offsets[ctx.get()]==-1;
+*/
     }
 
     /// @returns the collections iterator at the start position.
     DETRAY_HOST_DEVICE
     constexpr auto begin(const context_type & /*ctx*/ = {}) {
         return m_container.begin();
+/* CA Store >>>
+        return m_container.begin() + m_column_size*ctx.get();
+*/
     }
 
     /// @returns the collections iterator sentinel.
     DETRAY_HOST_DEVICE
     constexpr auto end(const context_type & /*ctx*/ = {}) {
         return m_container.end();
+/* CA Store >>>
+        return m_container.begin() + m_column_size*ctx.get() + m_offsets[ctx.get()] + 1;
+*/
     }
 
     /// @returns access to the underlying container - const
@@ -124,24 +140,36 @@ class single_store {
     constexpr auto get(const context_type & /*ctx*/) const noexcept
         -> const base_type & {
         return m_container;
+/* CA Store >>>
+        ???
+*/
     }
 
     /// @returns access to the underlying container - non-const
     DETRAY_HOST_DEVICE
     constexpr auto get(const context_type & /*ctx*/) noexcept -> base_type & {
         return m_container;
+/* CA Store >>>
+        ???
+*/
     }
 
     /// Elementwise access. Needs @c operator[] for storage type - non-const
     DETRAY_HOST_DEVICE
     constexpr decltype(auto) operator[](const dindex i) {
         return m_container[i];
+/* CA Store >>>
+        ???
+*/
     }
 
     /// Elementwise access. Needs @c operator[] for storage type - const
     DETRAY_HOST_DEVICE
     constexpr decltype(auto) operator[](const dindex i) const {
         return m_container[i];
+/* CA Store >>>
+        ???
+*/
     }
 
     /// @returns context based access to an element (also range checked)
@@ -150,6 +178,10 @@ class single_store {
                       const context_type & /*ctx*/) const noexcept
         -> const T & {
         return m_container.at(i);
+/* CA Store >>>
+        if(i>m_offsets[ctx.get()]); // Throw?
+        return m_container.at(i+m_column_size*ctx.get());
+*/
     }
 
     /// @returns context based access to an element (also range checked)
@@ -157,21 +189,34 @@ class single_store {
     constexpr auto at(const dindex i, const context_type & /*ctx*/) noexcept
         -> T & {
         return m_container.at(i);
+/* CA Store >>>
+        if(i>m_offsets[ctx.get()]); // Throw?
+        return m_container.at(i+m_column_size*ctx.get());
+*/
     }
 
     /// Removes and destructs all elements in the container.
     DETRAY_HOST void clear(const context_type & /*ctx*/) {
         m_container.clear();
+/* CA Store >>>
+        m_offsets[ctx.get()]=-1;
+*/
     }
 
     /// Reserve memory of size @param n for a given geometry context
     DETRAY_HOST void reserve(std::size_t n, const context_type & /*ctx*/) {
         m_container.reserve(n);
+/* CA Store >>>
+        ???
+*/
     }
 
     /// Resize the underlying container to @param n for a given geometry context
     DETRAY_HOST void resize(std::size_t n, const context_type & /*ctx*/) {
         m_container.resize(n);
+/* CA Store >>>
+        ???
+*/
     }
 
     /// Add a new element to the collection - copy
@@ -183,9 +228,13 @@ class single_store {
     /// @note in general can throw an exception
     template <typename U>
     DETRAY_HOST constexpr auto push_back(
-        const U &arg, const context_type & /*ctx*/ = {}) noexcept(false)
+	const U &arg, const context_type & /*ctx*/ = {}) noexcept(false)
         -> void {
         m_container.push_back(arg);
+/* CA Store >>>
+        if(m_offsets[ctx.get()]==m_column_size-1); // Column full. Throw?
+        m_container[m_column_size*ctx.get()+m_offsets[ctx.get()]+1]=arg;
+*/
     }
 
     /// Add a new element to the collection - move
@@ -199,6 +248,10 @@ class single_store {
     DETRAY_HOST constexpr auto push_back(
         U &&arg, const context_type & /*ctx*/ = {}) noexcept(false) -> void {
         m_container.push_back(std::forward<U>(arg));
+/* CA Store >>>
+        if(m_offsets[ctx.get()]==m_column_size-1); // Column full. Throw?
+        m_container[m_column_size*ctx.get()+m_offsets[ctx.get()]+1]=std::forward<U>(arg);
+*/
     }
 
     /// Add a new element to the collection in place
@@ -279,6 +332,10 @@ class single_store {
     private:
     /// The underlying container implementation
     base_type m_container;
+/* CA Store >>>
+    offsets_container m_offsets;
+    size_type m_column_size;
+*/
 };
 
 }  // namespace detray

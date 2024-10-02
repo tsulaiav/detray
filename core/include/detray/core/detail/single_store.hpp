@@ -109,13 +109,13 @@ class single_store {
 
     /// @returns the collections iterator at the start position.
     DETRAY_HOST_DEVICE
-    constexpr auto begin(const context_type & /*ctx*/ = {}) {
+    constexpr auto begin(const context_type & /*ctx*/ = {}) const {
         return m_container.begin();
     }
 
     /// @returns the collections iterator sentinel.
     DETRAY_HOST_DEVICE
-    constexpr auto end(const context_type & /*ctx*/ = {}) {
+    constexpr auto end(const context_type & /*ctx*/ = {}) const {
         return m_container.end();
     }
 
@@ -132,30 +132,25 @@ class single_store {
         return m_container;
     }
 
-    /// Elementwise access. Needs @c operator[] for storage type - non-const
-    DETRAY_HOST_DEVICE
-    constexpr decltype(auto) operator[](const dindex i) {
-        return m_container[i];
-    }
-
-    /// Elementwise access. Needs @c operator[] for storage type - const
-    DETRAY_HOST_DEVICE
-    constexpr decltype(auto) operator[](const dindex i) const {
-        return m_container[i];
+    /// Temporary dummy method
+    DETRAY_HOST_DEVICE void dummy() const {
+      printf("Dummy\n");
     }
 
     /// @returns context based access to an element (also range checked)
     DETRAY_HOST_DEVICE
     constexpr auto at(const dindex i,
-                      const context_type & /*ctx*/) const noexcept
+                      const context_type & ctx = {}) const noexcept
         -> const T & {
+        if(ctx.get()==9999) dummy(); // Just to check if anybody calling at() without passing the context value
         return m_container.at(i);
     }
 
     /// @returns context based access to an element (also range checked)
     DETRAY_HOST_DEVICE
-    constexpr auto at(const dindex i, const context_type & /*ctx*/) noexcept
+    constexpr auto at(const dindex i, const context_type & ctx = {}) noexcept
         -> T & {
+        if(ctx.get()==9999) dummy(); // Just to check if anybody calling at() without passing the context value
         return m_container.at(i);
     }
 
@@ -276,9 +271,37 @@ class single_store {
         return detray::get_data(m_container);
     }
 
+    DETRAY_HOST void fix_context_size() {
+      m_context_size = static_cast<dindex>(m_container.size());
+      m_n_contexts = 1;
+    }
+
+    template <typename U>
+    DETRAY_HOST auto add_context(container_t<U> &&new_data) noexcept(false)
+        -> void {
+      if(m_n_contexts != 0
+        && new_data.size() == m_context_size) {
+       insert(std::move(new_data));
+       m_n_contexts++;
+      }
+      else {
+       // ToDo: Error?
+      }
+    }
+
+    #include <iostream>
+    DETRAY_HOST void dump_info() const {
+      std::cout << "SINGLE STORE *** \n"
+		<< "Container size " << m_container.size() << "\n"
+		<< "Context size   " << m_context_size << "\n"
+		<< "N Contexts     " << m_n_contexts << std::endl;
+    }
+
     private:
     /// The underlying container implementation
     base_type m_container;
+    dindex m_context_size{0};
+    dindex m_n_contexts{0};
 };
 
 }  // namespace detray

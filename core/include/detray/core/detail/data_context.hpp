@@ -28,12 +28,17 @@ class data_context {
     DETRAY_HOST_DEVICE
     explicit data_context(dindex value) : m_data{value} {}
 
+    DETRAY_HOST_DEVICE
+    bool operator == (const data_context& other) {
+      return m_data==other.m_data;
+    }
+
     /// @returns the index to find the data for the context - const
     DETRAY_HOST_DEVICE
     dindex get() const { return m_data; }
 
     private:
-    dindex m_data{0};
+    dindex m_data{9999};
 };
 
 }  // namespace detail

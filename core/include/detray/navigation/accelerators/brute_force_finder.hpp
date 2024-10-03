@@ -60,7 +60,8 @@ class brute_force_collection {
             const detector_t& /*det*/,
             const typename detector_t::volume_type& /*volume*/,
             const track_t& /*track*/,
-            const config_t& /*navigation_config*/) const {
+	    const config_t& /*navigation_config*/,
+	    const typename detector_t::geometry_context& /*ctx*/) const {
             return *this;
         }
 

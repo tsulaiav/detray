@@ -156,7 +156,7 @@ struct propagator {
 
             // Find next candidate
             propagation._heartbeat &=
-                m_navigator.update(propagation, m_cfg.navigation);
+	        m_navigator.update(propagation, m_cfg.navigation, m_cfg.context);
 
             // Run all registered actors/aborters after update
             run_actors(actor_state_refs, propagation);

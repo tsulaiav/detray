@@ -674,7 +674,8 @@ class navigator {
     /// @return a heartbeat to indicate if the navigation is still alive
     template <typename propagator_state_t>
     DETRAY_HOST_DEVICE inline bool update(propagator_state_t &propagation,
-                                          const navigation::config &cfg) const {
+                                          const navigation::config &cfg,
+					  const context_type& ctx = {}) const {
 
         state &navigation = propagation._navigation;
 
@@ -707,7 +708,7 @@ class navigator {
             // navigation.run_inspector(cfg, track.pos(), track.dir(), "Volume
             // switch: ");
 
-            init(propagation, cfg);
+            init(propagation, cfg, ctx);
 
             // Fresh initialization, reset trust and hearbeat
             navigation.m_trust_level = navigation::trust_level::e_full;
@@ -717,7 +718,7 @@ class navigator {
         }
         // If no trust could be restored for the current state, (local)
         // navigation might be exhausted: re-initialize volume
-        navigation.m_heartbeat &= init(propagation, cfg);
+        navigation.m_heartbeat &= init(propagation, cfg, ctx);
 
         // Sanity check: Should never be the case after complete update call
         if (navigation.trust_level() != navigation::trust_level::e_full ||
@@ -738,7 +739,8 @@ class navigator {
     /// @param propagation contains the stepper and navigator states
     template <typename propagator_state_t>
     DETRAY_HOST_DEVICE inline void update_kernel(
-        propagator_state_t &propagation, const navigation::config &cfg) const {
+	propagator_state_t &propagation, const navigation::config &cfg,
+	const context_type& ctx = {}) const {
 
         state &navigation = propagation._navigation;
         const auto &det = navigation.detector();
@@ -819,7 +821,7 @@ class navigator {
         // Actor flagged cache as broken (other cases of 'no trust' are
         // handeled after volume switch was checked in 'update()')
         if (navigation.trust_level() == navigation::trust_level::e_no_trust) {
-            navigation.m_heartbeat &= init(propagation, cfg);
+	  navigation.m_heartbeat &= init(propagation, cfg, ctx);
             return;
         }
     }

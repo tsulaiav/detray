@@ -99,7 +99,7 @@ struct parameter_transporter : actor {
 
         using detector_type = typename propagator_state_t::detector_type;
         using geo_cxt_t = typename detector_type::geometry_context;
-        const geo_cxt_t ctx{};
+        const geo_cxt_t ctx{0}; // Hack!
 
         // Current Surface
         const auto sf = navigation.get_surface();

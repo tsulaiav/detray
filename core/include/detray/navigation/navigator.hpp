@@ -123,6 +123,7 @@ class navigator {
     using vector3_type = dvector3D<algebra_type>;
 
     using volume_type = typename detector_type::volume_type;
+    using context_type  = typename detector_t::geometry_context;
     using nav_link_type = typename detector_type::surface_type::navigation_link;
     using intersection_type = intersection_t;
     using inspector_type = inspector_t;
@@ -620,7 +621,8 @@ class navigator {
     /// @param propagation contains the stepper and navigator states
     template <typename propagator_state_t>
     DETRAY_HOST_DEVICE inline bool init(propagator_state_t &propagation,
-                                        const navigation::config &cfg) const {
+                                        const navigation::config &cfg,
+					const context_type& ctx = {}) const {
 
         state &navigation = propagation._navigation;
         const auto &det = navigation.detector();
@@ -633,7 +635,7 @@ class navigator {
 
         // Search for neighboring surfaces and fill candidates into cache
         volume.template visit_neighborhood<candidate_search>(
-            track, cfg, det, track, navigation,
+            track, cfg, ctx, det, track, navigation,
             std::array<scalar_type, 2u>{cfg.min_mask_tolerance,
                                         cfg.max_mask_tolerance},
             static_cast<scalar_type>(cfg.mask_tolerance_scalor),

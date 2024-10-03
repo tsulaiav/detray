@@ -34,6 +34,7 @@ struct propagator {
     using navigator_type = navigator_t;
     using intersection_type = typename navigator_type::intersection_type;
     using detector_type = typename navigator_type::detector_type;
+    using context_type = typename detector_type::geometry_context;
     using actor_chain_type = actor_chain_t;
     using algebra_type = typename stepper_t::algebra_type;
     using scalar_type = dscalar<algebra_type>;
@@ -60,6 +61,7 @@ struct propagator {
     struct state {
 
         using detector_type = typename navigator_t::detector_type;
+        using context_type = typename detector_type::geometry_context;
         using navigator_state_type = typename navigator_t::state;
         using actor_chain_type = actor_chain_t;
         using scalar_type = typename navigator_t::scalar_type;
@@ -101,8 +103,9 @@ struct propagator {
         template <typename field_t>
         DETRAY_HOST_DEVICE state(const bound_track_parameters_type &param,
                                  const field_t &magnetic_field,
-                                 const detector_type &det)
-            : _stepping(param, magnetic_field, det), _navigation(det) {}
+                                 const detector_type &det,
+				 const context_type &ctx = {})
+	  : _stepping(param, magnetic_field, det, ctx), _navigation(det) {}
 
         /// Set the particle hypothesis
         DETRAY_HOST_DEVICE
@@ -135,7 +138,7 @@ struct propagator {
 
         // Initialize the navigation
         propagation._heartbeat =
-            m_navigator.init(propagation, m_cfg.navigation);
+            m_navigator.init(propagation, m_cfg.navigation, m_cfg.context);
 
         // Run all registered actors/aborters after init
         run_actors(actor_state_refs, propagation);

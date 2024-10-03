@@ -66,8 +66,8 @@ class rk_stepper final
         template <typename detector_t>
         DETRAY_HOST_DEVICE state(
             const bound_track_parameters_type& bound_params,
-            const magnetic_field_t& mag_field, const detector_t& det)
-            : base_type::state(bound_params, det), _magnetic_field(mag_field) {}
+            const magnetic_field_t& mag_field, const detector_t& det, const typename detector_t::geometry_context& ctx = {})
+	  : base_type::state(bound_params, det, ctx), _magnetic_field(mag_field) {}
 
         /// stepping data required for RKN4
         struct {

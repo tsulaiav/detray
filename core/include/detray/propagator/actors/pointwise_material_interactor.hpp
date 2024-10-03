@@ -142,7 +142,7 @@ struct pointwise_material_interactor : actor {
 
             auto &stepping = prop_state._stepping;
 
-            this->update(geo_context_type{}, stepping._ptc,
+            this->update(geo_context_type{0}, stepping._ptc,         // Hack!
                          stepping._bound_params, interactor_state,
                          static_cast<int>(navigation.direction()),
                          navigation.get_surface());

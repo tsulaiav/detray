@@ -622,8 +622,7 @@ class navigator {
     /// @param propagation contains the stepper and navigator states
     template <typename propagator_state_t>
     DETRAY_HOST_DEVICE inline bool init(propagator_state_t &propagation,
-                                        const navigation::config &cfg,
-					const context_type& ctx = {}) const {
+                                        const navigation::config &cfg) const {
 
         state &navigation = propagation._navigation;
         const auto &det = navigation.detector();
@@ -636,7 +635,7 @@ class navigator {
 
         // Search for neighboring surfaces and fill candidates into cache
         volume.template visit_neighborhood<candidate_search>(
-            track, cfg, ctx, det, track, navigation,
+            track, cfg, propagation._context, det, track, navigation,
             std::array<scalar_type, 2u>{cfg.min_mask_tolerance,
                                         cfg.max_mask_tolerance},
             static_cast<scalar_type>(cfg.mask_tolerance_scalor),
@@ -674,8 +673,7 @@ class navigator {
     /// @return a heartbeat to indicate if the navigation is still alive
     template <typename propagator_state_t>
     DETRAY_HOST_DEVICE inline bool update(propagator_state_t &propagation,
-                                          const navigation::config &cfg,
-					  const context_type& ctx = {}) const {
+                                          const navigation::config &cfg) const {
 
         state &navigation = propagation._navigation;
 
@@ -708,7 +706,7 @@ class navigator {
             // navigation.run_inspector(cfg, track.pos(), track.dir(), "Volume
             // switch: ");
 
-            init(propagation, cfg, ctx);
+            init(propagation, cfg);
 
             // Fresh initialization, reset trust and hearbeat
             navigation.m_trust_level = navigation::trust_level::e_full;
@@ -718,7 +716,7 @@ class navigator {
         }
         // If no trust could be restored for the current state, (local)
         // navigation might be exhausted: re-initialize volume
-        navigation.m_heartbeat &= init(propagation, cfg, ctx);
+        navigation.m_heartbeat &= init(propagation, cfg);
 
         // Sanity check: Should never be the case after complete update call
         if (navigation.trust_level() != navigation::trust_level::e_full ||
@@ -739,9 +737,8 @@ class navigator {
     /// @param propagation contains the stepper and navigator states
     template <typename propagator_state_t>
     DETRAY_HOST_DEVICE inline void update_kernel(
-	propagator_state_t &propagation, const navigation::config &cfg,
-	const context_type& ctx = {}) const {
-
+	propagator_state_t &propagation, const navigation::config &cfg) const {
+      
         state &navigation = propagation._navigation;
         const auto &det = navigation.detector();
         const auto &track = propagation._stepping();
@@ -821,7 +818,7 @@ class navigator {
         // Actor flagged cache as broken (other cases of 'no trust' are
         // handeled after volume switch was checked in 'update()')
         if (navigation.trust_level() == navigation::trust_level::e_no_trust) {
-	  navigation.m_heartbeat &= init(propagation, cfg, ctx);
+	  navigation.m_heartbeat &= init(propagation, cfg);
             return;
         }
     }

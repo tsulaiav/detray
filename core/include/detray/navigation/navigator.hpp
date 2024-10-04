@@ -755,7 +755,7 @@ class navigator {
              navigation.trust_level() == navigation::trust_level::e_high)) {
 
             // Update next candidate: If not reachable, 'high trust' is broken
-            if (!update_candidate(navigation.target(), track, det, cfg)) {
+	    if (!update_candidate(navigation.target(), track, det, cfg, propagation._context)) {
                 navigation.m_status = navigation::status::e_unknown;
                 navigation.set_fair_trust();
             } else {
@@ -777,7 +777,7 @@ class navigator {
 
                 // Else: Track is on module.
                 // Ready the next candidate after the current module
-                if (update_candidate(navigation.target(), track, det, cfg)) {
+                if (update_candidate(navigation.target(), track, det, cfg, propagation._context)) {
                     return;
                 }
 
@@ -794,7 +794,7 @@ class navigator {
 
             for (auto &candidate : navigation) {
                 // Disregard this candidate if it is not reachable
-                if (!update_candidate(candidate, track, det, cfg)) {
+	        if (!update_candidate(candidate, track, det, cfg, propagation._context)) {
                     // Forcefully set dist to numeric max for sorting
                     candidate.path = std::numeric_limits<scalar_type>::max();
                 }
@@ -882,7 +882,7 @@ class navigator {
     template <typename track_t>
     DETRAY_HOST_DEVICE inline bool update_candidate(
         intersection_type &candidate, const track_t &track,
-        const detector_type &det, const navigation::config &cfg) const {
+        const detector_type &det, const navigation::config &cfg, const context_type &ctx) const {
 
         if (candidate.sf_desc.barcode().is_invalid()) {
             return false;
@@ -892,7 +892,7 @@ class navigator {
 
         // Check whether this candidate is reachable by the track
         return sf.template visit_mask<intersection_update<ray_intersector>>(
-            detail::ray(track), candidate, det.transform_store(),
+	    detail::ray(track), candidate, det.transform_store(), ctx,
             sf.is_portal() ? std::array<scalar_type, 2>{0.f, 0.f}
                            : std::array<scalar_type, 2>{cfg.min_mask_tolerance,
                                                         cfg.max_mask_tolerance},

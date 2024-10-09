@@ -46,11 +46,11 @@ struct intersection_initialize {
         is_container_t &is_container, const traj_t &traj,
         const surface_t &surface,
         const transform_container_t &contextual_transforms,
+	const typename transform_container_t::context_type &ctx,
         const std::array<scalar_t, 2u> &mask_tolerance =
             {0.f, 1.f * unit<scalar_t>::mm},
         const scalar_t mask_tol_scalor = 0.f,
         const scalar_t overstep_tol = 0.f) const {
-        typename transform_container_t::context_type ctx{0}; // Hack!
         using mask_t = typename mask_group_t::value_type;
         using algebra_t = typename mask_t::algebra_type;
 

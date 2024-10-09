@@ -594,16 +594,15 @@ class navigator {
         /// Test the volume links
         template <typename track_t>
         DETRAY_HOST_DEVICE void operator()(
-            const typename detector_type::surface_type &sf_descr,
-            const detector_type &det, const track_t &track, state &nav_state,
+	    const typename detector_type::surface_type &sf_descr,
+            const detector_type &det, const context_type& ctx, const track_t &track, state &nav_state,
             const std::array<scalar_type, 2> mask_tol,
             const scalar_type mask_tol_scalor,
             const scalar_type overstep_tol) const {
-
             const auto sf = tracking_surface{det, sf_descr};
 
             sf.template visit_mask<intersection_initialize<ray_intersector>>(
-                nav_state, detail::ray(track), sf_descr, det.transform_store(),
+	        nav_state, detail::ray(track), sf_descr, det.transform_store(), ctx,
                 sf.is_portal() ? std::array<scalar_type, 2>{0.f, 0.f}
                                : mask_tol,
                 mask_tol_scalor, overstep_tol);
@@ -632,10 +631,9 @@ class navigator {
         // Clean up state
         navigation.clear();
         navigation.m_heartbeat = true;
-
         // Search for neighboring surfaces and fill candidates into cache
         volume.template visit_neighborhood<candidate_search>(
-            track, cfg, propagation._context, det, track, navigation,
+            track, cfg, propagation._context, det, propagation._context, track, navigation,
             std::array<scalar_type, 2u>{cfg.min_mask_tolerance,
                                         cfg.max_mask_tolerance},
             static_cast<scalar_type>(cfg.mask_tolerance_scalor),

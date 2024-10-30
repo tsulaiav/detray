@@ -46,14 +46,17 @@ using algebra_t = test::algebra;
 // dummy propagator state
 template <typename stepping_t, typename navigation_t>
 struct prop_state {
+    using context_t = typename navigation_t::detector_type::geometry_context;
 
     stepping_t _stepping;
     navigation_t _navigation;
+    context_t _context;
 
     template <typename track_t, typename field_type>
     prop_state(const track_t &t_in, const field_type &field,
-               const typename navigation_t::detector_type &det)
-        : _stepping(t_in, field), _navigation(det) {}
+               const typename navigation_t::detector_type &det,
+	       const context_t &ctx = {})
+        : _stepping(t_in, field), _navigation(det), _context(ctx) {}
 };
 
 static constexpr bool verbose_check = true;

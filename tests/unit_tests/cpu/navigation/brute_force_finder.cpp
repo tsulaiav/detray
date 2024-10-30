@@ -103,7 +103,9 @@ GTEST_TEST(detray_navigation, brute_force_search) {
     const auto [det, names] = build_toy_detector(host_mr);
 
     using detector_t = decltype(det);
-
+    using context_t = detector_t::geometry_context;
+    context_t ctx{};
+    
     struct navigation_cfg {
         std::array<dindex, 2> search_window;
     };
@@ -116,6 +118,6 @@ GTEST_TEST(detray_navigation, brute_force_search) {
     detail::ray<typename detector_t::algebra_type> trk({0.f, 0.f, 0.f}, 0.f,
                                                        {1.f, 0.f, 0.f}, -1.f);
 
-    vol.template visit_neighborhood<neighbor_visit_test>(trk, navigation_cfg{},
+    vol.template visit_neighborhood<neighbor_visit_test>(trk, navigation_cfg{}, ctx,
                                                          test_vol_idx);
 }
